@@ -17,10 +17,12 @@ Production-ready alumni networking platform for BMS College of Engineering built
 ```bash
 npm install
 cp .env.example .env.local
+supabase start
+supabase db reset
 npm run dev
 ```
 
-The app renders preview data without Supabase credentials. Configure `.env.local` to enable authentication and writes.
+Use the values from `supabase status` in `.env.local`. See the local development guide for the seeded Student test account.
 
 ## Project structure
 
@@ -37,5 +39,6 @@ docs/                 Product, architecture, stack, and deployment docs
 
 - [Alumni networking platform PRD, user stories, schema, API, architecture, and roadmap](docs/alumni-networking-platform-prd.md)
 - [Tech stack recommendation and tradeoff comparison](docs/tech-stack-recommendation.md)
+- [Local development guide and test account](docs/local-development.md)
 - [Deployment and operations guide](docs/deployment.md)
 - [CTO MVP implementation task tracker](docs/mvp-implementation-tasks.md)

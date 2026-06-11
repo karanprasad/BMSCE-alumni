@@ -19,6 +19,7 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.profiles (
   id,
+  auth_user_id,
   full_name,
   role,
   verification_status,
@@ -38,6 +39,7 @@ INSERT INTO public.profiles (
 ) VALUES
   (
     '9b5b8a43-64d9-481a-9331-9f90b33a1001',
+    NULL,
     'Ananya Rao',
     'alumni',
     'verified',
@@ -57,6 +59,7 @@ INSERT INTO public.profiles (
   ),
   (
     '9b5b8a43-64d9-481a-9331-9f90b33a1002',
+    NULL,
     'Rahul Menon',
     'alumni',
     'verified',
@@ -76,6 +79,7 @@ INSERT INTO public.profiles (
   ),
   (
     '9b5b8a43-64d9-481a-9331-9f90b33a1003',
+    NULL,
     'Meera Iyer',
     'alumni',
     'verified',
@@ -95,6 +99,7 @@ INSERT INTO public.profiles (
   ),
   (
     '9b5b8a43-64d9-481a-9331-9f90b33a1004',
+    NULL,
     'Vikram Bhat',
     'alumni',
     'verified',
@@ -114,6 +119,7 @@ INSERT INTO public.profiles (
   ),
   (
     '9b5b8a43-64d9-481a-9331-9f90b33a2001',
+    '00000000-0000-0000-0000-000000000010',
     'Priya S',
     'student',
     'verified',
@@ -132,6 +138,66 @@ INSERT INTO public.profiles (
     false
   )
 ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO auth.users (
+  id,
+  instance_id,
+  aud,
+  role,
+  email,
+  encrypted_password,
+  email_confirmed_at,
+  recovery_sent_at,
+  last_sign_in_at,
+  raw_app_meta_data,
+  raw_user_meta_data,
+  created_at,
+  updated_at,
+  confirmation_token,
+  email_change,
+  email_change_token_new,
+  recovery_token
+) VALUES (
+  '00000000-0000-0000-0000-000000000010',
+  '00000000-0000-0000-0000-000000000000',
+  'authenticated',
+  'authenticated',
+  'student@bmsce.test',
+  crypt('BmsceStudent123!', gen_salt('bf')),
+  now(),
+  now(),
+  now(),
+  '{"provider":"email","providers":["email"]}'::jsonb,
+  '{"full_name":"Priya S","role":"student","department":"Computer Science and Engineering","graduation_year":"2027","location_city":"Bengaluru","location_country":"India"}'::jsonb,
+  now(),
+  now(),
+  '',
+  '',
+  '',
+  ''
+)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO auth.identities (
+  id,
+  user_id,
+  identity_data,
+  provider,
+  provider_id,
+  last_sign_in_at,
+  created_at,
+  updated_at
+) VALUES (
+  '00000000-0000-0000-0000-000000000010',
+  '00000000-0000-0000-0000-000000000010',
+  '{"sub":"00000000-0000-0000-0000-000000000010","email":"student@bmsce.test","email_verified":true,"phone_verified":false}'::jsonb,
+  'email',
+  '00000000-0000-0000-0000-000000000010',
+  now(),
+  now(),
+  now()
+)
+ON CONFLICT (provider, provider_id) DO NOTHING;
 
 INSERT INTO public.profile_skills (profile_id, skill_id) VALUES
   ('9b5b8a43-64d9-481a-9331-9f90b33a1001', '10000000-0000-0000-0000-000000000001'),

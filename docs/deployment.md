@@ -60,6 +60,11 @@ supabase db reset
 
 The local reset applies migrations and seed data.
 
+Local seed data includes this Student test account:
+
+- Email: `student@bmsce.test`
+- Password: `BmsceStudent123!`
+
 ## Row-level security
 
 The migration enables RLS on all application tables. Important policies:
