@@ -142,15 +142,20 @@ export async function getMentorshipRequests(): Promise<MentorshipRequest[]> {
     return mockMentorshipRequests;
   }
 
-  return data.map((row) => ({
-    id: row.id,
-    topic: row.topic,
-    goal: row.goal,
-    status: row.status,
-    created_at: row.created_at,
-    student_name: row.student?.full_name ?? "Student",
-    mentor_name: row.mentor?.full_name ?? "Mentor"
-  }));
+  return data.map((row) => {
+    const student = Array.isArray(row.student) ? row.student[0] : row.student;
+    const mentor = Array.isArray(row.mentor) ? row.mentor[0] : row.mentor;
+
+    return {
+      id: row.id,
+      topic: row.topic,
+      goal: row.goal,
+      status: row.status,
+      created_at: row.created_at,
+      student_name: student?.full_name ?? "Student",
+      mentor_name: mentor?.full_name ?? "Mentor"
+    };
+  });
 }
 
 export async function getConversations(): Promise<Conversation[]> {
