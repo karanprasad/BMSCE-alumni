@@ -8,9 +8,8 @@ Production-ready alumni networking platform for BMS College of Engineering built
 - Verified alumni directory with search and filters.
 - Alumni profile pages with skills, work, education, mentorship, and referral signals.
 - Mentorship requests.
-- Direct messaging with notification queue hooks.
-- Event discovery and admin-created events.
-- Admin dashboard for verification, moderation, events, and metrics.
+- Direct messaging after accepted mentorship/referral requests, with notification queue hooks.
+- Admin dashboard for verification, moderation, and request-response metrics.
 - Row-level security, database migrations, and seed data.
 
 ## Quick start
@@ -39,3 +38,4 @@ docs/                 Product, architecture, stack, and deployment docs
 - [Alumni networking platform PRD, user stories, schema, API, architecture, and roadmap](docs/alumni-networking-platform-prd.md)
 - [Tech stack recommendation and tradeoff comparison](docs/tech-stack-recommendation.md)
 - [Deployment and operations guide](docs/deployment.md)
+- [CTO MVP implementation task tracker](docs/mvp-implementation-tasks.md)

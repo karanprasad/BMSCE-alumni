@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Briefcase, MapPin, MessageCircle } from "lucide-react";
+import { Briefcase, MapPin, Send } from "lucide-react";
 import { initials } from "@/lib/utils";
 import type { Profile } from "@/types/domain";
 
@@ -49,11 +49,11 @@ export function AlumniCard({ profile }: { profile: Profile }) {
           View profile
         </Link>
         <Link
-          href={`/messages?recipient=${profile.id}`}
+          href={`/mentorship?mentorId=${profile.id}`}
           className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:text-blue-700"
         >
-          <MessageCircle className="h-4 w-4" />
-          Message
+          <Send className="h-4 w-4" />
+          Request
         </Link>
       </div>
     </article>

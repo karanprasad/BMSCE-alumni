@@ -1,17 +1,17 @@
 import Link from "next/link";
 import { GraduationCap } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
+import { getCurrentProfile } from "@/lib/data";
 
 const navItems = [
   { href: "/directory", label: "Directory" },
   { href: "/mentorship", label: "Mentorship" },
   { href: "/messages", label: "Messages" },
-  { href: "/events", label: "Events" },
   { href: "/admin", label: "Admin" }
 ];
 
 export async function SiteHeader() {
-  const user = await getCurrentUser();
+  const [user, profile] = await Promise.all([getCurrentUser(), getCurrentProfile()]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur">
@@ -31,9 +31,12 @@ export async function SiteHeader() {
         </nav>
         <div className="flex items-center gap-3">
           {user ? (
-            <span className="hidden rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700 sm:inline-flex">
-              Signed in
-            </span>
+            <Link
+              href="/onboarding"
+              className="hidden rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700 sm:inline-flex"
+            >
+              {profile ? "Edit profile" : "Complete profile"}
+            </Link>
           ) : (
             <Link
               href="/auth/login"

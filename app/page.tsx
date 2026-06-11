@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CalendarDays, MessageCircle, Search, ShieldCheck, Users } from "lucide-react";
+import { ArrowRight, ClipboardCheck, MessageCircle, Search, ShieldCheck, Users } from "lucide-react";
 import { getAdminMetrics } from "@/lib/data";
 import { StatCard } from "@/components/stat-card";
 
@@ -15,14 +15,14 @@ const features = [
     icon: Users
   },
   {
-    title: "Direct messaging",
-    description: "Authenticated users can continue conversations with email alerts and moderation hooks.",
+    title: "Accepted-request messaging",
+    description: "Messaging opens only after an alumnus accepts a structured request, keeping outreach intentional.",
     icon: MessageCircle
   },
   {
-    title: "Events and admin tools",
-    description: "Admins can manage events, verification queues, moderation, and community metrics.",
-    icon: CalendarDays
+    title: "Trust and verification",
+    description: "Admins approve alumni, watch moderation queues, and track the request-to-response loop.",
+    icon: ClipboardCheck
   }
 ];
 
@@ -40,11 +40,11 @@ export default async function HomePage() {
               Trusted BMSCE career community
             </div>
             <h1 className="max-w-4xl text-4xl font-bold tracking-tight text-white sm:text-6xl">
-              Connect students and alumni for mentorship, referrals, events, and networking.
+              LinkedIn-style BMSCE alumni search with Lunchclub-style structured mentorship requests.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-              A production-ready Next.js and Supabase platform for BMS College of Engineering, designed for fast launch,
-              responsive web access, and scalable community operations.
+              Launch fast with the smallest useful loop: verified alumni profiles, precise search, respectful requests,
+              accepted-request messaging, and admin verification.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link

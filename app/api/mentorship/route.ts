@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { mentorshipRequestSchema } from "@/lib/schemas";
+import { mentorshipRequestSchema, mentorshipStatusSchema } from "@/lib/schemas";
 
 export async function GET() {
   const supabase = await createClient();
@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const parsed = mentorshipRequestSchema.safeParse({
     mentorId: formData.get("mentorId"),
+    requestType: formData.get("requestType") || "mentorship",
     topic: formData.get("topic"),
     goal: formData.get("goal"),
     message: formData.get("message"),
@@ -73,6 +74,7 @@ export async function POST(request: NextRequest) {
     mentor_id: parsed.data.mentorId,
     mentor_auth_user_id: mentor.auth_user_id,
     student_auth_user_id: user.id,
+    request_type: parsed.data.requestType,
     topic: parsed.data.topic,
     goal: parsed.data.goal,
     message: parsed.data.message,
@@ -84,4 +86,35 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.redirect(new URL("/mentorship?created=true", request.url), { status: 303 });
+}
+
+export async function PATCH(request: NextRequest) {
+  const formData = await request.formData();
+  const parsed = mentorshipStatusSchema.safeParse({
+    requestId: formData.get("requestId"),
+    status: formData.get("status")
+  });
+
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
+  }
+
+  const supabase = await createClient();
+
+  if (!supabase) {
+    return NextResponse.redirect(new URL(`/mentorship?status=${parsed.data.status}&preview=true`, request.url), {
+      status: 303
+    });
+  }
+
+  const { error } = await supabase.rpc("respond_to_mentorship_request", {
+    request_id: parsed.data.requestId,
+    next_status: parsed.data.status
+  });
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  return NextResponse.redirect(new URL(`/mentorship?status=${parsed.data.status}`, request.url), { status: 303 });
 }

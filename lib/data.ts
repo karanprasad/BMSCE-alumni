@@ -4,9 +4,10 @@ import {
   mockConversations,
   mockEvents,
   mockMentorshipRequests,
-  mockProfiles
+  mockProfiles,
+  mockReports
 } from "@/lib/mock-data";
-import type { AdminMetric, Conversation, Event, MentorshipRequest, Profile } from "@/types/domain";
+import type { AdminMetric, Conversation, Event, MentorshipRequest, Profile, ReportSummary } from "@/types/domain";
 
 type DirectoryFilters = {
   q?: string;
@@ -125,6 +126,39 @@ export async function getProfile(id: string): Promise<Profile | null> {
   } as Profile;
 }
 
+export async function getCurrentProfile(): Promise<Profile | null> {
+  const supabase = await createClient();
+
+  if (!supabase) {
+    return null;
+  }
+
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*, profile_skills(skills(name))")
+    .eq("auth_user_id", user.id)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return {
+    ...data,
+    skills: (data.profile_skills ?? [])
+      .map((item: { skills: { name: string } | null }) => item.skills?.name)
+      .filter(Boolean)
+  } as Profile;
+}
+
 export async function getMentorshipRequests(): Promise<MentorshipRequest[]> {
   const supabase = await createClient();
 
@@ -133,8 +167,8 @@ export async function getMentorshipRequests(): Promise<MentorshipRequest[]> {
   }
 
   const { data, error } = await supabase
-    .from("mentorship_requests")
-    .select("id, topic, goal, status, created_at, student:student_id(full_name), mentor:mentor_id(full_name)")
+    .from("mentorship_request_summaries")
+    .select("*")
     .order("created_at", { ascending: false })
     .limit(25);
 
@@ -142,20 +176,7 @@ export async function getMentorshipRequests(): Promise<MentorshipRequest[]> {
     return mockMentorshipRequests;
   }
 
-  return data.map((row) => {
-    const student = Array.isArray(row.student) ? row.student[0] : row.student;
-    const mentor = Array.isArray(row.mentor) ? row.mentor[0] : row.mentor;
-
-    return {
-      id: row.id,
-      topic: row.topic,
-      goal: row.goal,
-      status: row.status,
-      created_at: row.created_at,
-      student_name: student?.full_name ?? "Student",
-      mentor_name: mentor?.full_name ?? "Mentor"
-    };
-  });
+  return data as MentorshipRequest[];
 }
 
 export async function getConversations(): Promise<Conversation[]> {
@@ -223,4 +244,51 @@ export async function getAdminMetrics(): Promise<AdminMetric[]> {
     { label: "Mentorship requests", value: String(mentorshipCount ?? 0), helper: "All-time requests" },
     { label: "Open reports", value: String(reportCount ?? 0), helper: "Needs admin review" }
   ];
+}
+
+export async function getPendingProfiles(): Promise<Profile[]> {
+  const supabase = await createClient();
+
+  if (!supabase) {
+    return mockProfiles.filter((profile) => profile.verification_status === "pending");
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*, profile_skills(skills(name))")
+    .eq("verification_status", "pending")
+    .order("created_at", { ascending: true })
+    .limit(25);
+
+  if (error || !data) {
+    return [];
+  }
+
+  return data.map((row) => ({
+    ...row,
+    skills: (row.profile_skills ?? [])
+      .map((item: { skills: { name: string } | null }) => item.skills?.name)
+      .filter(Boolean)
+  })) as Profile[];
+}
+
+export async function getReports(): Promise<ReportSummary[]> {
+  const supabase = await createClient();
+
+  if (!supabase) {
+    return mockReports as ReportSummary[];
+  }
+
+  const { data, error } = await supabase
+    .from("reports")
+    .select("id, reason, target_type, status, created_at")
+    .eq("status", "open")
+    .order("created_at", { ascending: false })
+    .limit(25);
+
+  if (error || !data) {
+    return [];
+  }
+
+  return data as ReportSummary[];
 }

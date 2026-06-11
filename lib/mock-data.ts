@@ -92,6 +92,29 @@ export const mockProfiles: Profile[] = [
     open_to_mentorship: false,
     open_to_referrals: true,
     skills: ["Leadership", "Backend", "Distributed Systems", "Career Coaching"]
+  },
+  {
+    id: "9b5b8a43-64d9-481a-9331-9f90b33a1005",
+    full_name: "Nisha Kulkarni",
+    role: "alumni",
+    verification_status: "pending",
+    headline: "Product Manager at Razorpay",
+    bio: "Awaiting alumni verification before becoming visible in the directory.",
+    department: "Information Science and Engineering",
+    graduation_year: 2019,
+    current_company: "Razorpay",
+    current_title: "Product Manager",
+    industry: "Fintech",
+    location_city: "Bengaluru",
+    location_country: "India",
+    profile_photo_url: null,
+    linkedin_url: "https://linkedin.com",
+    website_url: null,
+    show_email: false,
+    allow_messages: true,
+    open_to_mentorship: true,
+    open_to_referrals: true,
+    skills: ["Product Management", "Fintech", "Growth"]
   }
 ];
 
@@ -100,8 +123,10 @@ export const mockMentorshipRequests: MentorshipRequest[] = [
     id: "4e8ab728-63c0-4df5-8fd7-5df48d110001",
     student_name: "Priya S",
     mentor_name: "Ananya Rao",
+    request_type: "mentorship",
     topic: "SDE interview preparation",
     goal: "Prepare for product company internships",
+    message: "I am looking for structured interview preparation guidance.",
     status: "accepted",
     created_at: "2026-06-08T10:30:00.000Z"
   },
@@ -109,8 +134,10 @@ export const mockMentorshipRequests: MentorshipRequest[] = [
     id: "4e8ab728-63c0-4df5-8fd7-5df48d110002",
     student_name: "Arjun K",
     mentor_name: "Rahul Menon",
+    request_type: "career_guidance",
     topic: "Data science roadmap",
     goal: "Choose projects for MS applications",
+    message: "I would like advice on choosing ML projects that show depth.",
     status: "pending",
     created_at: "2026-06-09T14:00:00.000Z"
   }
@@ -167,4 +194,14 @@ export const mockAdminMetrics: AdminMetric[] = [
   { label: "Students onboarded", value: "3,912", helper: "62% profile completion" },
   { label: "Mentorship requests", value: "436", helper: "58% accepted" },
   { label: "Open reports", value: "7", helper: "Median response under 1 day" }
+];
+
+export const mockReports = [
+  {
+    id: "70000000-0000-0000-0000-000000000001",
+    reason: "Spam",
+    target_type: "message",
+    status: "open",
+    created_at: "2026-06-10T12:00:00.000Z"
+  }
 ];

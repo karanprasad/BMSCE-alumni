@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Briefcase, GraduationCap, MapPin, Send } from "lucide-react";
+import { Briefcase, GraduationCap, MapPin } from "lucide-react";
 import { PageShell } from "@/components/page-shell";
 import { StatusPill } from "@/components/status-pill";
 import { getProfile } from "@/lib/data";
@@ -69,13 +69,9 @@ export default async function AlumniProfilePage({ params }: AlumniProfilePagePro
               >
                 Request mentorship
               </Link>
-              <Link
-                href={`/messages?recipient=${profile.id}`}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:border-blue-300 hover:text-blue-700"
-              >
-                <Send className="h-4 w-4" />
-                Send message
-              </Link>
+              <p className="rounded-2xl bg-slate-50 p-3 text-sm leading-6 text-slate-600">
+                Messaging opens after this alumnus accepts your structured request.
+              </p>
             </div>
           </div>
         </aside>

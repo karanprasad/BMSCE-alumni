@@ -81,6 +81,8 @@ CREATE TABLE public.mentorship_requests (
   student_auth_user_id UUID NOT NULL,
   mentor_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   mentor_auth_user_id UUID NOT NULL,
+  conversation_id UUID,
+  request_type TEXT NOT NULL DEFAULT 'mentorship',
   topic TEXT NOT NULL,
   goal TEXT NOT NULL,
   message TEXT NOT NULL,
@@ -116,6 +118,10 @@ CREATE TABLE public.messages (
   edited_at TIMESTAMPTZ,
   deleted_at TIMESTAMPTZ
 );
+
+ALTER TABLE public.mentorship_requests
+  ADD CONSTRAINT mentorship_requests_conversation_id_fkey
+  FOREIGN KEY (conversation_id) REFERENCES public.conversations(id) ON DELETE SET NULL;
 
 CREATE TABLE public.events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -358,6 +364,10 @@ CREATE POLICY "skills_select_all_authenticated"
 ON public.skills FOR SELECT TO authenticated
 USING (true);
 
+CREATE POLICY "skills_insert_authenticated"
+ON public.skills FOR INSERT TO authenticated
+WITH CHECK (true);
+
 CREATE POLICY "profile_skills_select_visible_profiles"
 ON public.profile_skills FOR SELECT TO authenticated
 USING (EXISTS (
@@ -387,10 +397,10 @@ CREATE POLICY "mentorship_insert_student"
 ON public.mentorship_requests FOR INSERT TO authenticated
 WITH CHECK (student_auth_user_id = auth.uid());
 
-CREATE POLICY "mentorship_update_participants_or_admin"
+CREATE POLICY "mentorship_update_admin_only"
 ON public.mentorship_requests FOR UPDATE TO authenticated
-USING (student_auth_user_id = auth.uid() OR mentor_auth_user_id = auth.uid() OR public.is_admin())
-WITH CHECK (student_auth_user_id = auth.uid() OR mentor_auth_user_id = auth.uid() OR public.is_admin());
+USING (public.is_admin())
+WITH CHECK (public.is_admin());
 
 CREATE POLICY "conversations_select_participants_or_admin"
 ON public.conversations FOR SELECT TO authenticated
@@ -526,6 +536,103 @@ LEFT JOIN public.messages unread_messages
   )
 GROUP BY conversations.id, other_profile.full_name, other_profile.headline, latest_message.body, latest_message.created_at;
 
+CREATE OR REPLACE VIEW public.mentorship_request_summaries
+WITH (security_invoker = on)
+AS
+SELECT
+  mentorship_requests.id,
+  mentorship_requests.student_auth_user_id,
+  mentorship_requests.mentor_auth_user_id,
+  mentorship_requests.mentor_id,
+  mentorship_requests.conversation_id,
+  mentorship_requests.request_type,
+  mentorship_requests.topic,
+  mentorship_requests.goal,
+  mentorship_requests.message,
+  mentorship_requests.preferred_mode,
+  mentorship_requests.status,
+  mentorship_requests.created_at,
+  mentorship_requests.responded_at,
+  COALESCE(student_profile.full_name, 'Student') AS student_name,
+  COALESCE(mentor_profile.full_name, 'Mentor') AS mentor_name
+FROM public.mentorship_requests
+LEFT JOIN public.profiles student_profile
+  ON student_profile.auth_user_id = mentorship_requests.student_auth_user_id
+LEFT JOIN public.profiles mentor_profile
+  ON mentor_profile.auth_user_id = mentorship_requests.mentor_auth_user_id;
+
+CREATE OR REPLACE FUNCTION public.respond_to_mentorship_request(request_id UUID, next_status public.mentorship_status)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  request_record public.mentorship_requests%ROWTYPE;
+  new_conversation_id UUID;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Authentication required';
+  END IF;
+
+  IF next_status NOT IN ('accepted', 'declined', 'completed', 'cancelled') THEN
+    RAISE EXCEPTION 'Invalid mentorship status';
+  END IF;
+
+  SELECT *
+    INTO request_record
+  FROM public.mentorship_requests
+  WHERE id = request_id
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Mentorship request not found';
+  END IF;
+
+  IF next_status IN ('accepted', 'declined', 'completed') AND request_record.mentor_auth_user_id <> auth.uid() AND NOT public.is_admin() THEN
+    RAISE EXCEPTION 'Only the mentor or an admin can set this status';
+  END IF;
+
+  IF next_status = 'cancelled' AND request_record.student_auth_user_id <> auth.uid() AND NOT public.is_admin() THEN
+    RAISE EXCEPTION 'Only the student or an admin can cancel this request';
+  END IF;
+
+  IF next_status = 'accepted' AND request_record.conversation_id IS NULL THEN
+    INSERT INTO public.conversations DEFAULT VALUES
+    RETURNING id INTO new_conversation_id;
+
+    INSERT INTO public.conversation_participants (conversation_id, auth_user_id)
+    VALUES
+      (new_conversation_id, request_record.student_auth_user_id),
+      (new_conversation_id, request_record.mentor_auth_user_id);
+  ELSE
+    new_conversation_id := request_record.conversation_id;
+  END IF;
+
+  UPDATE public.mentorship_requests
+  SET
+    status = next_status,
+    conversation_id = COALESCE(new_conversation_id, conversation_id),
+    responded_at = CASE WHEN next_status IN ('accepted', 'declined') THEN now() ELSE responded_at END
+  WHERE id = request_id;
+
+  INSERT INTO public.notifications (auth_user_id, channel, type, subject, body, metadata)
+  VALUES (
+    CASE
+      WHEN auth.uid() = request_record.student_auth_user_id THEN request_record.mentor_auth_user_id
+      ELSE request_record.student_auth_user_id
+    END,
+    'email',
+    'mentorship_request_updated',
+    'Mentorship request updated',
+    'A BMSCE mentorship request has been updated.',
+    jsonb_build_object('requestId', request_id, 'status', next_status, 'conversationId', new_conversation_id)
+  );
+
+  RETURN new_conversation_id;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.create_direct_message(recipient_profile_id UUID, message_body TEXT)
 RETURNS UUID
 LANGUAGE plpgsql
@@ -534,6 +641,7 @@ SET search_path = public
 AS $$
 DECLARE
   recipient_auth_user_id UUID;
+  request_record public.mentorship_requests%ROWTYPE;
   new_conversation_id UUID;
 BEGIN
   IF auth.uid() IS NULL THEN
@@ -555,13 +663,37 @@ BEGIN
     RAISE EXCEPTION 'Cannot message yourself';
   END IF;
 
-  INSERT INTO public.conversations DEFAULT VALUES
-  RETURNING id INTO new_conversation_id;
+  SELECT *
+    INTO request_record
+  FROM public.mentorship_requests
+  WHERE status = 'accepted'
+    AND (
+      (student_auth_user_id = auth.uid() AND mentor_auth_user_id = recipient_auth_user_id)
+      OR (student_auth_user_id = recipient_auth_user_id AND mentor_auth_user_id = auth.uid())
+    )
+  ORDER BY responded_at DESC NULLS LAST, created_at DESC
+  LIMIT 1
+  FOR UPDATE;
 
-  INSERT INTO public.conversation_participants (conversation_id, auth_user_id)
-  VALUES
-    (new_conversation_id, auth.uid()),
-    (new_conversation_id, recipient_auth_user_id);
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Messaging opens after an accepted mentorship request';
+  END IF;
+
+  IF request_record.conversation_id IS NULL THEN
+    INSERT INTO public.conversations DEFAULT VALUES
+    RETURNING id INTO new_conversation_id;
+
+    INSERT INTO public.conversation_participants (conversation_id, auth_user_id)
+    VALUES
+      (new_conversation_id, request_record.student_auth_user_id),
+      (new_conversation_id, request_record.mentor_auth_user_id);
+
+    UPDATE public.mentorship_requests
+    SET conversation_id = new_conversation_id
+    WHERE id = request_record.id;
+  ELSE
+    new_conversation_id := request_record.conversation_id;
+  END IF;
 
   INSERT INTO public.messages (conversation_id, sender_auth_user_id, body)
   VALUES (new_conversation_id, auth.uid(), message_body);
@@ -580,4 +712,5 @@ BEGIN
 END;
 $$;
 
+GRANT EXECUTE ON FUNCTION public.respond_to_mentorship_request(UUID, public.mentorship_status) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.create_direct_message(UUID, TEXT) TO authenticated;

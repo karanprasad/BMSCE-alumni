@@ -30,10 +30,14 @@ export type Profile = {
 
 export type MentorshipRequest = {
   id: string;
+  mentor_id?: string;
+  conversation_id?: string | null;
   student_name: string;
   mentor_name: string;
+  request_type: "mentorship" | "referral_advice" | "career_guidance";
   topic: string;
   goal: string;
+  message?: string;
   status: "pending" | "accepted" | "declined" | "cancelled" | "completed";
   created_at: string;
 };
@@ -64,4 +68,12 @@ export type AdminMetric = {
   label: string;
   value: string;
   helper: string;
+};
+
+export type ReportSummary = {
+  id: string;
+  reason: string;
+  target_type: string;
+  status: "open" | "reviewing" | "resolved" | "dismissed";
+  created_at: string;
 };
