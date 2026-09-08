@@ -1,0 +1,276 @@
+INSERT INTO public.skills (id, name) VALUES
+  ('10000000-0000-0000-0000-000000000001', 'React'),
+  ('10000000-0000-0000-0000-000000000002', 'TypeScript'),
+  ('10000000-0000-0000-0000-000000000003', 'System Design'),
+  ('10000000-0000-0000-0000-000000000004', 'Product Engineering'),
+  ('10000000-0000-0000-0000-000000000005', 'Python'),
+  ('10000000-0000-0000-0000-000000000006', 'Machine Learning'),
+  ('10000000-0000-0000-0000-000000000007', 'Data Science'),
+  ('10000000-0000-0000-0000-000000000008', 'Statistics'),
+  ('10000000-0000-0000-0000-000000000009', 'IoT'),
+  ('10000000-0000-0000-0000-000000000010', 'Hardware'),
+  ('10000000-0000-0000-0000-000000000011', 'Entrepreneurship'),
+  ('10000000-0000-0000-0000-000000000012', 'Embedded Systems'),
+  ('10000000-0000-0000-0000-000000000013', 'Leadership'),
+  ('10000000-0000-0000-0000-000000000014', 'Backend'),
+  ('10000000-0000-0000-0000-000000000015', 'Distributed Systems'),
+  ('10000000-0000-0000-0000-000000000016', 'Career Coaching')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.profiles (
+  id,
+  auth_user_id,
+  full_name,
+  role,
+  verification_status,
+  headline,
+  bio,
+  department,
+  graduation_year,
+  current_company,
+  current_title,
+  industry,
+  location_city,
+  location_country,
+  linkedin_url,
+  website_url,
+  open_to_mentorship,
+  open_to_referrals
+) VALUES
+  (
+    '9b5b8a43-64d9-481a-9331-9f90b33a1001',
+    NULL,
+    'Ananya Rao',
+    'alumni',
+    'verified',
+    'Senior Product Engineer at Google',
+    'BMSCE CSE alumna mentoring students on product engineering, interviews, and early-career growth.',
+    'Computer Science and Engineering',
+    2016,
+    'Google',
+    'Senior Product Engineer',
+    'Software',
+    'Bengaluru',
+    'India',
+    'https://linkedin.com',
+    NULL,
+    true,
+    true
+  ),
+  (
+    '9b5b8a43-64d9-481a-9331-9f90b33a1002',
+    NULL,
+    'Rahul Menon',
+    'alumni',
+    'verified',
+    'Data Scientist at Microsoft',
+    'Works on applied ML and helps students prepare for data science internships and graduate programs.',
+    'Information Science and Engineering',
+    2018,
+    'Microsoft',
+    'Data Scientist',
+    'Artificial Intelligence',
+    'Hyderabad',
+    'India',
+    'https://linkedin.com',
+    NULL,
+    true,
+    false
+  ),
+  (
+    '9b5b8a43-64d9-481a-9331-9f90b33a1003',
+    NULL,
+    'Meera Iyer',
+    'alumni',
+    'verified',
+    'Founder at CircuitWorks',
+    'Electronics entrepreneur building industrial IoT products and supporting student founders.',
+    'Electronics and Communication Engineering',
+    2012,
+    'CircuitWorks',
+    'Founder',
+    'Industrial IoT',
+    'Pune',
+    'India',
+    'https://linkedin.com',
+    'https://example.com',
+    true,
+    false
+  ),
+  (
+    '9b5b8a43-64d9-481a-9331-9f90b33a1004',
+    NULL,
+    'Vikram Bhat',
+    'alumni',
+    'verified',
+    'Engineering Manager at Atlassian',
+    'Mentors students and alumni on engineering leadership, backend systems, and career transitions.',
+    'Mechanical Engineering',
+    2010,
+    'Atlassian',
+    'Engineering Manager',
+    'Software',
+    'Sydney',
+    'Australia',
+    'https://linkedin.com',
+    NULL,
+    false,
+    true
+  ),
+  (
+    '9b5b8a43-64d9-481a-9331-9f90b33a2001',
+    '00000000-0000-0000-0000-000000000010',
+    'Priya S',
+    'student',
+    'verified',
+    'Final-year CSE student interested in product engineering',
+    'Preparing for software engineering internships and looking for alumni mentorship.',
+    'Computer Science and Engineering',
+    2027,
+    NULL,
+    NULL,
+    'Software',
+    'Bengaluru',
+    'India',
+    NULL,
+    NULL,
+    false,
+    false
+  )
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO auth.users (
+  id,
+  instance_id,
+  aud,
+  role,
+  email,
+  encrypted_password,
+  email_confirmed_at,
+  recovery_sent_at,
+  last_sign_in_at,
+  raw_app_meta_data,
+  raw_user_meta_data,
+  created_at,
+  updated_at,
+  confirmation_token,
+  email_change,
+  email_change_token_new,
+  recovery_token
+) VALUES (
+  '00000000-0000-0000-0000-000000000010',
+  '00000000-0000-0000-0000-000000000000',
+  'authenticated',
+  'authenticated',
+  'student@bmsce.test',
+  crypt('BmsceStudent123!', gen_salt('bf')),
+  now(),
+  now(),
+  now(),
+  '{"provider":"email","providers":["email"]}'::jsonb,
+  '{"full_name":"Priya S","role":"student","department":"Computer Science and Engineering","graduation_year":"2027","location_city":"Bengaluru","location_country":"India"}'::jsonb,
+  now(),
+  now(),
+  '',
+  '',
+  '',
+  ''
+)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO auth.identities (
+  id,
+  user_id,
+  identity_data,
+  provider,
+  provider_id,
+  last_sign_in_at,
+  created_at,
+  updated_at
+) VALUES (
+  '00000000-0000-0000-0000-000000000010',
+  '00000000-0000-0000-0000-000000000010',
+  '{"sub":"00000000-0000-0000-0000-000000000010","email":"student@bmsce.test","email_verified":true,"phone_verified":false}'::jsonb,
+  'email',
+  '00000000-0000-0000-0000-000000000010',
+  now(),
+  now(),
+  now()
+)
+ON CONFLICT (provider, provider_id) DO NOTHING;
+
+INSERT INTO public.profile_skills (profile_id, skill_id) VALUES
+  ('9b5b8a43-64d9-481a-9331-9f90b33a1001', '10000000-0000-0000-0000-000000000001'),
+  ('9b5b8a43-64d9-481a-9331-9f90b33a1001', '10000000-0000-0000-0000-000000000002'),
+  ('9b5b8a43-64d9-481a-9331-9f90b33a1001', '10000000-0000-0000-0000-000000000003'),
+  ('9b5b8a43-64d9-481a-9331-9f90b33a1001', '10000000-0000-0000-0000-000000000004'),
+  ('9b5b8a43-64d9-481a-9331-9f90b33a1002', '10000000-0000-0000-0000-000000000005'),
+  ('9b5b8a43-64d9-481a-9331-9f90b33a1002', '10000000-0000-0000-0000-000000000006'),
+  ('9b5b8a43-64d9-481a-9331-9f90b33a1002', '10000000-0000-0000-0000-000000000007'),
+  ('9b5b8a43-64d9-481a-9331-9f90b33a1002', '10000000-0000-0000-0000-000000000008'),
+  ('9b5b8a43-64d9-481a-9331-9f90b33a1003', '10000000-0000-0000-0000-000000000009'),
+  ('9b5b8a43-64d9-481a-9331-9f90b33a1003', '10000000-0000-0000-0000-000000000010'),
+  ('9b5b8a43-64d9-481a-9331-9f90b33a1003', '10000000-0000-0000-0000-000000000011'),
+  ('9b5b8a43-64d9-481a-9331-9f90b33a1003', '10000000-0000-0000-0000-000000000012'),
+  ('9b5b8a43-64d9-481a-9331-9f90b33a1004', '10000000-0000-0000-0000-000000000013'),
+  ('9b5b8a43-64d9-481a-9331-9f90b33a1004', '10000000-0000-0000-0000-000000000014'),
+  ('9b5b8a43-64d9-481a-9331-9f90b33a1004', '10000000-0000-0000-0000-000000000015'),
+  ('9b5b8a43-64d9-481a-9331-9f90b33a1004', '10000000-0000-0000-0000-000000000016')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public.events (
+  id,
+  created_by_auth_user_id,
+  title,
+  description,
+  starts_at,
+  ends_at,
+  location,
+  virtual_url,
+  status,
+  published_at
+) VALUES
+  (
+    '58a544c2-1b21-4c50-b65f-6fe314510001',
+    '00000000-0000-0000-0000-000000000001',
+    'BMSCE Alumni Tech Mentorship Night',
+    'A virtual mentorship evening with alumni across software, AI, core engineering, and startups.',
+    '2026-07-05T13:30:00.000Z',
+    '2026-07-05T15:30:00.000Z',
+    NULL,
+    'https://meet.google.com/demo',
+    'published',
+    now()
+  ),
+  (
+    '58a544c2-1b21-4c50-b65f-6fe314510002',
+    '00000000-0000-0000-0000-000000000001',
+    'Bengaluru Alumni Mixer',
+    'In-person networking for Bengaluru-based alumni and final-year students.',
+    '2026-07-19T12:30:00.000Z',
+    '2026-07-19T15:30:00.000Z',
+    'Bengaluru',
+    NULL,
+    'published',
+    now()
+  )
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.reports (
+  id,
+  reporter_auth_user_id,
+  target_type,
+  target_id,
+  reason,
+  details,
+  status
+) VALUES (
+  '70000000-0000-0000-0000-000000000001',
+  '00000000-0000-0000-0000-000000000002',
+  'forum_post',
+  '80000000-0000-0000-0000-000000000001',
+  'Spam',
+  'Seed report for dashboard preview.',
+  'open'
+)
+ON CONFLICT (id) DO NOTHING;
